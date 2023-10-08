@@ -1,0 +1,34 @@
+@typeparam TItem
+@typeparam TSelector
+@inherits CRUDView<TItem, TSelector>
+
+<MudForm Class="relative">
+	@if (IsLoading || CurrentItem == null)
+	{
+		<MudOverlay Visible="true" DarkBackground="true" Absolute="true">
+			<MudProgressCircular Color="Color.Secondary" Indeterminate="true" />
+		</MudOverlay>
+	}
+	else
+	{
+
+		@foreach (var field in FieldDescriptions())
+		{
+			var type = Nullable.GetUnderlyingType(field.FieldType) ?? field.FieldType;
+			if (type == typeof(string) || type == typeof(int) || type == typeof(double) || type == typeof(float) || type == typeof(long) || type == typeof(short))
+			{
+				var textEditorType = typeof(MudTextField<>).MakeGenericType(field.FieldType);
+				var callback = GetType().GetMethod(nameof(CreateTextBoxValueChangedCallback), System.Reflection.BindingFlags.NonPublic | System.Reflection.BindingFlags.Instance)!.MakeGenericMethod(field.FieldType).Invoke(this, new object[] { field })!;
+				var parameters = new Dictionary<string, object>
+							{
+								["Value"] = field.GetFieldValue(CurrentItem)!,
+								["ValueChanged"] = callback,
+								["Label"] = field.Text,
+								["ReadOnly"] = field.ReadOnly
+							};
+				<DynamicComponent Type="textEditorType" Parameters="parameters"></DynamicComponent>
+			}
+		}
+
+	}
+</MudForm>

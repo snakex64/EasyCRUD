@@ -1,0 +1,96 @@
+﻿@page "/"
+@using global::MudBlazor;
+
+<MudContainer MaxWidth="MaxWidth.Small">
+	<MudPaper Class="pa-2">
+
+		<MudStack Row="true">
+
+			<MudList Clickable="true" SelectedValueChanged="x => CurrentUserId = (int)(x ?? 1)">
+				@foreach(var user in UsersDB)
+				{
+					<MudListItem Text="@user.Name" Icon="@Icons.Material.Filled.Person" Value="user.Id" />
+				}
+			</MudList>
+
+			<MudFormCRUDView Configuration="Configuration" Selector="CurrentUserId" />
+		</MudStack>
+
+	</MudPaper>
+</MudContainer>
+@code {
+
+
+	class User
+	{
+		public int Id { get; set; }
+
+		public string Name { get; set; } = "";
+
+		public int Age { get; set; }
+
+		public string Email { get; set; } = "";
+
+		public User Clone() => new()
+			{
+				Id = Id,
+				Name = Name,
+				Age = Age,
+				Email = Email
+			};
+	}
+
+	private List<User> UsersDB = new()
+	{
+		new()
+		{
+			Id = 1,
+			Name = "John Doe",
+			Age = 42,
+			Email = "john.doe@gmail.com"
+		},
+		new()
+		{
+			Id = 2,
+			Name = "Snake oil",
+			Age = 66,
+			Email = "snake.oil@gmail.com"
+		},
+		new()
+		{
+			Id = 3,
+			Name = "Techy mister",
+			Age = 12,
+			Email = "techy.mister@gmail.com"
+		},
+	};
+
+	CRUDConfiguration<User, int> Configuration;
+
+	private int CurrentUserId = 1;
+
+
+	public Index()
+	{
+		Configuration = new()
+			{
+				GetItem = GetUserById,
+				UpdateItem = UpdateUser
+			};
+	}
+
+
+	private async Task<User> GetUserById(int id)
+	{
+		await Task.Delay(1000); // very slow database
+		return UsersDB.First(u => u.Id == id).Clone(); // clone since in a real DB we wouldn't but touching the actual live DB cells
+	}
+
+	private async Task UpdateUser(User user)
+	{
+		await Task.Delay(1000); // very slow database
+
+		var index = UsersDB.FindIndex(u => u.Id == user.Id);
+		UsersDB[index] = user.Clone();
+	}
+}
